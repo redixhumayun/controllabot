@@ -25,15 +25,14 @@ if __name__ == "__main__":
   try:
     while True:
       main_queue_value = main_queue.get()
-      print(main_queue_value)
       if main_queue_value == MotorStateEnum.START:
-        print("Start motors")
         motor_queue.put(MotorStateEnum.START)
       elif main_queue_value == MotorStateEnum.STOP:
-        print("Stop motors")
         motor_queue.put(MotorStateEnum.STOP)
       elif main_queue_value == MotorStateEnum.REVERSE:
         motor_queue.put(MotorStateEnum.REVERSE)
+      else:
+        motor_queue.put(main_queue_value)
   except KeyboardInterrupt:
     print("Quitting the main loop")
     controller_queue.put(None)

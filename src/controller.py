@@ -25,19 +25,26 @@ class Controller(Process):
         break
       for event in events:
         if event.type == pygame.JOYAXISMOTION:
-          pass
+          if event.axis == 0 and event.value != 0:
+            value = event.value
+            turn_dict = { 'value': event.value, 'state': MotorStateEnum.TURN }
+            self.main_queue.put(turn_dict)
+          if event.axis == 1 and event.value > 0:
+            self.main_queue.put(MotorStateEnum.STOP)
         if event.type == pygame.JOYBUTTONDOWN:
-          print(event.dict)
+          # L2 pressed
           if event.button == 6:
             self.main_queue.put(MotorStateEnum.REVERSE)
+          # R2 pressed
           if event.button == 7:
             self.main_queue.put(MotorStateEnum.START)
         if (event.type == pygame.JOYBUTTONUP):
+          # L2 released
           if event.button == 6:
             self.main_queue.put(MotorStateEnum.STOP)
+          # R2 released
           if event.button == 7:
             self.main_queue.put(MotorStateEnum.STOP)
-          pass
 
     # clean up
     self.joystick.quit()
