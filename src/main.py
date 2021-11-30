@@ -35,7 +35,7 @@ if __name__ == "__main__":
         motor_queue.put(main_queue_value)
   except KeyboardInterrupt:
     print("Quitting the main loop")
-    controller_queue.put(None)
-    motor_queue.put(None)
+    controller_queue.put_nowait(None)
+    motor_queue.put_nowait(None)
     for process in processes:
       process.join()

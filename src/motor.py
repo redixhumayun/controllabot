@@ -62,7 +62,8 @@ class Motor(Process):
     self.main_queue = main_queue
 
   def run(self):
-    while True:
+    should_exit_loop = False
+    while should_exit_loop is False:
       value = self.queue.get()
       if value == MotorStateEnum.START:
         self.start_motors()
@@ -74,9 +75,8 @@ class Motor(Process):
         # Motor needs to turn
         self.turn_motors(value['value'])
       elif value is None:
-        break
+        should_exit_loop = True
 
-    print("Running motor cleaup")
     self.stop_motors()
     GPIO.cleanup()
 
@@ -85,88 +85,100 @@ class Motor(Process):
     GPIO.output(self.in1, GPIO.HIGH)
     GPIO.output(self.in2, GPIO.LOW)
 
-    # GPIO.output(self.in3, GPIO.HIGH)
-    # GPIO.output(self.in4, GPIO.LOW)
+    GPIO.output(self.in3, GPIO.HIGH)
+    GPIO.output(self.in4, GPIO.LOW)
 
-    # GPIO.output(self.in5, GPIO.HIGH)
-    # GPIO.output(self.in6, GPIO.LOW)
+    GPIO.output(self.in5, GPIO.HIGH)
+    GPIO.output(self.in6, GPIO.LOW)
 
-    # GPIO.output(self.in7, GPIO.HIGH)
-    # GPIO.output(self.in8, GPIO.LOW)
+    GPIO.output(self.in7, GPIO.HIGH)
+    GPIO.output(self.in8, GPIO.LOW)
 
   def stop_motors(self):
     GPIO.output(self.in1, GPIO.LOW)
     GPIO.output(self.in2, GPIO.LOW)
 
-    # GPIO.output(self.in3, GPIO.LOW)
-    # GPIO.output(self.in4, GPIO.LOW)
+    GPIO.output(self.in3, GPIO.LOW)
+    GPIO.output(self.in4, GPIO.LOW)
 
-    # GPIO.output(self.in5, GPIO.LOW)
-    # GPIO.output(self.in6, GPIO.LOW)
+    GPIO.output(self.in5, GPIO.LOW)
+    GPIO.output(self.in6, GPIO.LOW)
 
-    # GPIO.output(self.in7, GPIO.LOW)
-    # GPIO.output(self.in8, GPIO.LOW)
+    GPIO.output(self.in7, GPIO.LOW)
+    GPIO.output(self.in8, GPIO.LOW)
 
   def reverse_motors(self):
     GPIO.output(self.in1, GPIO.LOW)
     GPIO.output(self.in2, GPIO.HIGH)
 
-    # GPIO.output(self.in3, GPIO.LOW)
-    # GPIO.output(self.in4, GPIO.HIGH)
+    GPIO.output(self.in3, GPIO.LOW)
+    GPIO.output(self.in4, GPIO.HIGH)
 
-    # GPIO.output(self.in5, GPIO.LOW)
-    # GPIO.output(self.in6, GPIO.HIGH)
+    GPIO.output(self.in5, GPIO.LOW)
+    GPIO.output(self.in6, GPIO.HIGH)
 
-    # GPIO.output(self.in7, GPIO.LOW)
-    # GPIO.output(self.in8, GPIO.HIGH)
+    GPIO.output(self.in7, GPIO.LOW)
+    GPIO.output(self.in8, GPIO.HIGH)
   
   def turn_motors(self, scaling_value):
-    print("scaling_value", scaling_value)
-    inverted_scaling_value = 1 - abs(scaling_value)
     try:
+      print(scaling_value)
       if scaling_value > 0:
-        scaling_output_1 = inverted_scaling_value * self.duty_cycle_1
-        scaling_output_3 = inverted_scaling_value * self.duty_cycle_3
-        if scaling_output_1 < 100 and scaling_output_3 < 100:
-          print("scaling_output_1", scaling_output_1)
+        scaling_output_1 = scaling_value * self.duty_cycle_1
+        scaling_output_3 = scaling_value * self.duty_cycle_3
+        if scaling_value > 0.2:
+          print('Running motors 1 & 3')
+          print(scaling_output_1)
+          print(scaling_output_3)
+
           self.pA.ChangeDutyCycle(scaling_output_1)
-          time.sleep(0.25)
-      # elif scaling_value < 0:
-      #   scaling_output_2 = inverted_scaling_value * self.duty_cycle_2
-      #   scaling_output_4 = inverted_scaling_value * self.duty_cycle_4
-      #   if scaling_output_2 < 100 and scaling_output_4 < 100:
-      #     self.pB.ChangeDutyCycle(scaling_output_2)
-      #     self.pD.ChangeDutyCycle(scaling_output_4)
+          GPIO.output(self.in1, GPIO.HIGH)
+          GPIO.output(self.in2, GPIO.LOW)
+
+          self.pC.ChangeDutyCycle(scaling_output_3)
+          GPIO.output(self.in5, GPIO.HIGH)
+          GPIO.output(self.in6, GPIO.LOW)
+        elif scaling_value <= 0.2:
+          print('Stopping motors 1 & 3')
+          print(scaling_output_1)
+          print(scaling_output_3)
+
+          self.pA.ChangeDutyCycle(scaling_output_1)
+          GPIO.output(self.in1, GPIO.LOW)
+          GPIO.output(self.in2, GPIO.LOW)
+
+          self.pC.ChangeDutyCycle(scaling_output_3)
+          GPIO.output(self.in5, GPIO.LOW)
+          GPIO.output(self.in6, GPIO.LOW)
+      elif scaling_value < 0:
+        scaling_output_2 = scaling_value * self.duty_cycle_2
+        scaling_output_4 = scaling_value * self.duty_cycle_4
+        if scaling_value < -0.2:
+          print('Running motors 2 & 4')
+          print(scaling_output_2)
+          print(scaling_output_4)
+
+          self.pB.ChangeDutyCycle(abs(scaling_output_2))
+          GPIO.output(self.in3, GPIO.HIGH)
+          GPIO.output(self.in4, GPIO.LOW)
+
+          self.pD.ChangeDutyCycle(abs(scaling_output_4))
+          GPIO.output(self.in7, GPIO.HIGH)
+          GPIO.output(self.in8, GPIO.LOW)
+
+        elif scaling_value > -0.2:
+          print('Stopping motors 2 & 4')
+          print(scaling_output_2)
+          print(scaling_output_4)
+
+          self.pB.ChangeDutyCycle(abs(scaling_output_2))
+          GPIO.output(self.in3, GPIO.LOW)
+          GPIO.output(self.in4, GPIO.LOW)
+
+          self.pD.ChangeDutyCycle(abs(scaling_output_4))
+          GPIO.output(self.in7, GPIO.LOW)
+          GPIO.output(self.in8, GPIO.LOW)
+
     except Exception as e:
-      print(e)
+      print('Error: ', e)
       pass
-
-# GPIO.setmode(GPIO.BCM)
-
-# GPIO.setup(in1, GPIO.OUT)
-# GPIO.setup(in2, GPIO.OUT)
-# GPIO.setup(enA, GPIO.OUT)
-# GPIO.output(in1,GPIO.LOW)
-# GPIO.output(in2,GPIO.LOW)
-# pA=GPIO.PWM(enA, 2000)
-# pA.start(50)
-
-# GPIO.setup(in3, GPIO.OUT)
-# GPIO.setup(in4, GPIO.OUT)
-# GPIO.setup(enB, GPIO.OUT)
-# GPIO.output(in3, GPIO.LOW)
-# GPIO.output(in4, GPIO.LOW)
-# pB = GPIO.PWM(enB, 2000)
-# pB.start(50)
-
-# try:
-#   while True:
-#     GPIO.output(in1,GPIO.HIGH)
-#     GPIO.output(in2,GPIO.LOW)
-
-#     GPIO.output(in3, GPIO.HIGH)
-#     GPIO.output(in4, GPIO.LOW)
-
-# except KeyboardInterrupt:
-#   GPIO.cleanup()
-#   sys.exit()

@@ -19,18 +19,21 @@ class Controller(Process):
     self.main_queue = main_queue
 
   def run(self):
-    while True:
+    should_exit_loop = False
+    while should_exit_loop is False:
+      if self.queue.qsize() > 0 and self.queue.get() is None:
+        should_exit_loop = True
+        
       events = pygame.event.get()
-      if self.queue.empty() == False and self.queue.get_nowait() == None:
-        break
+
       for event in events:
         if event.type == pygame.JOYAXISMOTION:
           if event.axis == 0 and event.value != 0:
             value = event.value
             turn_dict = { 'value': event.value, 'state': MotorStateEnum.TURN }
             self.main_queue.put(turn_dict)
-          if event.axis == 1 and event.value > 0:
-            self.main_queue.put(MotorStateEnum.STOP)
+          elif event.axis == 1 and event.value != 0:
+            pass
         if event.type == pygame.JOYBUTTONDOWN:
           # L2 pressed
           if event.button == 6:
@@ -48,26 +51,3 @@ class Controller(Process):
 
     # clean up
     self.joystick.quit()
-
-# try:
-#   while True:
-#     events = pygame.event.get()
-#     for event in events:
-#       if event.type == pygame.JOYAXISMOTION:
-#         print("JOYAXISMOTION")
-#         print(event.dict)
-#       elif event.type == pygame.JOYBALLMOTION:
-#         print("JOYBALLMOTION")
-#         print(event.dict)
-#       elif event.type == pygame.JOYBUTTONDOWN:
-#         print("JOYBUTTONDOWN")
-#         print(event.dict, 'pressed')
-#       elif event.type == pygame.JOYBUTTONUP:
-#         print("JOYBUTTONUP")
-#         print(event.dict, 'released')
-#       elif event.type == pygame.JOYHATMOTION:
-#         print("JOYHATMOTION")
-#         print(event.dict, event.joy, event.hat, event.value)
-# except KeyboardInterrupt:
-#   joystick.quit()
-#   sys.exit(0)
